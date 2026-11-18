@@ -134,8 +134,8 @@ def parse_text(text, base_conf):
     return f, items
 
 
-def _gemini(path):
-    """Ask Gemini to read the PDF. Raises ExtractionError on any problem so the caller can fall back."""
+def _gemini(path, model):
+    """Ask one Gemini model to read the PDF. Raises ExtractionError on any problem so the caller can fall back."""
     if not config.GEMINI_API_KEY:
         raise ExtractionError("GEMINI_API_KEY is not set")
     prompt = (
@@ -148,11 +148,13 @@ def _gemini(path):
     body = {"contents": [{"parts": [{"text": prompt}, {"inline_data": {
         "mime_type": "application/pdf", "data": base64.b64encode(open(path, "rb").read()).decode()}}]}],
         "generationConfig": {"temperature": 0, "responseMimeType": "application/json"}}
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{config.GEMINI_MODEL}:generateContent"
+    if model.startswith("gemini-3"):  # thinking levels exist on the 3.x models only
+        body["generationConfig"]["thinkingConfig"] = {"thinkingLevel": config.GEMINI_THINKING}
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     last = None
-    for attempt in range(3):
+    for attempt in range(2):
         try:
-            r = httpx.post(url, params={"key": config.GEMINI_API_KEY}, json=body, timeout=60)
+            r = httpx.post(url, headers={"x-goog-api-key": config.GEMINI_API_KEY}, json=body, timeout=config.GEMINI_TIMEOUT)
             if r.status_code in (429, 500, 503):
                 last = f"HTTP {r.status_code}"
                 time.sleep(2 * (attempt + 1))
@@ -163,7 +165,7 @@ def _gemini(path):
         except (httpx.HTTPError, KeyError, IndexError, json.JSONDecodeError) as e:
             last = f"{type(e).__name__}: {str(e)[:120]}"
             break
-    raise ExtractionError(f"Gemini call failed ({last})")
+    raise ExtractionError(f"{model} failed ({last})")
 
 
 def _from_gemini(js):
@@ -192,12 +194,19 @@ def extract(path, info):
         notes.append(f"Scanned image: read by OCR (average confidence {base_conf:.0%})")
     mode = config.EXTRACTOR
     if mode in ("auto", "llm") and config.GEMINI_API_KEY:
-        try:
-            fields, items = _from_gemini(_gemini(path))
-            return {"fields": fields, "line_items": items, "method": f"gemini ({config.GEMINI_MODEL})",
-                    "notes": notes, "scanned": scanned, "text": text}
-        except ExtractionError as e:
-            notes.append(f"{e}; fell back to rule-based extraction")
+        started = time.time()
+        for model in config.GEMINI_MODELS:
+            if time.time() - started > config.GEMINI_BUDGET:
+                notes.append("Gemini time budget used up; fell back to rule-based extraction")
+                break
+            try:
+                fields, items = _from_gemini(_gemini(path, model))
+                return {"fields": fields, "line_items": items, "method": f"gemini ({model})",
+                        "notes": notes, "scanned": scanned, "text": text}
+            except ExtractionError as e:
+                notes.append(f"{e}; trying the next option")
+        else:
+            notes.append("All Gemini models failed; fell back to rule-based extraction")
     elif mode == "llm":
         notes.append("EXTRACTOR=llm but no GEMINI_API_KEY; used rule-based extraction")
     fields, items = parse_text(text, base_conf)

@@ -24,7 +24,12 @@ BUYER_GSTIN = os.getenv("BUYER_GSTIN", "29AABCM5678K1Z2")
 # Extraction: "auto" uses Gemini when a key is present, else rules. "llm" or "rules" force one.
 EXTRACTOR = os.getenv("EXTRACTOR", "auto")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# Tried in order; the first that answers wins, and the rules extractor is the final fallback.
+GEMINI_MODELS = [m.strip() for m in os.getenv("GEMINI_MODELS", "gemini-3.1-flash-lite,gemini-flash-latest,gemini-3.6-flash").split(",") if m.strip()]
+GEMINI_MODEL = GEMINI_MODELS[0] if GEMINI_MODELS else ""
+GEMINI_BUDGET = float(os.getenv("GEMINI_BUDGET", "60"))  # seconds across all models before giving up
+GEMINI_THINKING = os.getenv("GEMINI_THINKING", "low")  # low | medium | high
+GEMINI_TIMEOUT = float(os.getenv("GEMINI_TIMEOUT", "30"))
 
 # Live demo pacing: seconds each stage "thinks" so a viewer can follow it. 0 for tests and fast mode.
 STAGE_DELAY = float(os.getenv("STAGE_DELAY", "0.45"))
