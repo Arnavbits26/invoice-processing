@@ -3,7 +3,7 @@ services:
     name: invoice-to-decision
     runtime: docker
     plan: free
-    healthCheckPath: /api/samples
+    healthCheckPath: /healthz
     envVars:
       - key: STAGE_DELAY
         value: "0.45"

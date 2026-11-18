@@ -50,6 +50,12 @@ def _start(path, filename, slow):
     return run_id
 
 
+@app.get("/healthz")
+def healthz():
+    """Tiny, dependency-free check for uptime monitors and Render. Touches no database or files."""
+    return {"ok": True}
+
+
 @app.get("/")
 def index():
     return FileResponse(ROOT / "static" / "index.html")

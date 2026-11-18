@@ -74,3 +74,8 @@ def test_unknown_things_404(client):
     assert client.get("/api/runs/nope").status_code == 404
     assert client.post("/api/samples/../../etc/passwd/run").status_code in (404, 405)
     assert client.get("/api/runs/../x/file").status_code == 404
+
+
+def test_healthz(client):
+    r = client.get("/healthz")
+    assert r.status_code == 200 and r.json() == {"ok": True}
