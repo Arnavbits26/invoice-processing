@@ -1,0 +1,103 @@
+[
+  {
+    "po_number": "PO-2026-1001",
+    "vendor_id": "V001",
+    "date": "2026-10-20",
+    "gst_rate": 18,
+    "lines": [
+      {
+        "desc": "A4 copier paper 75 GSM (ream)",
+        "qty": 500,
+        "rate": 285
+      },
+      {
+        "desc": "Ball pens blue (box of 50)",
+        "qty": 200,
+        "rate": 120
+      },
+      {
+        "desc": "Heavy-duty stapler",
+        "qty": 40,
+        "rate": 410
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-1002",
+    "vendor_id": "V002",
+    "date": "2026-10-01",
+    "gst_rate": 18,
+    "lines": [
+      {
+        "desc": "Managed IT support (monthly)",
+        "qty": 3,
+        "rate": 85000
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-1003",
+    "vendor_id": "V003",
+    "date": "2026-10-05",
+    "gst_rate": 18,
+    "lines": [
+      {
+        "desc": "Freight trips (Q4 2026)",
+        "qty": 100,
+        "rate": 5000
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-1004",
+    "vendor_id": "V004",
+    "date": "2026-10-28",
+    "gst_rate": 18,
+    "lines": [
+      {
+        "desc": "Facility management services (monthly)",
+        "qty": 1,
+        "rate": 180000
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-1005",
+    "vendor_id": "V005",
+    "date": "2026-10-30",
+    "gst_rate": 18,
+    "lines": [
+      {
+        "desc": "Cloud hosting - monthly plan",
+        "qty": 12,
+        "rate": 45000
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-1006",
+    "vendor_id": "V006",
+    "date": "2026-10-25",
+    "gst_rate": 12,
+    "lines": [
+      {
+        "desc": "Brochure A4 tri-fold 130gsm",
+        "qty": 5000,
+        "rate": 38
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-1007",
+    "vendor_id": "V001",
+    "date": "2026-10-15",
+    "gst_rate": 18,
+    "lines": [
+      {
+        "desc": "HP 26A toner cartridge",
+        "qty": 60,
+        "rate": 2150
+      }
+    ]
+  }
+]

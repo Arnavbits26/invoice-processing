@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice → Decision</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232b4acb'/%3E%3Cpath d='M9 12h12l-3-3M23 20H11l3 3' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#14181f;--muted:#5b6472;--line:#e3e6eb;--brand:#2b4acb;--brand-ink:#fff;
+--ok:#146c43;--ok-bg:#e7f6ee;--ok-line:#b7e2c9;--flag:#7a5b00;--flag-bg:#fff6dd;--flag-line:#f1dea0;
+--hold:#a24300;--hold-bg:#ffeadb;--hold-line:#f7caa8;--info:#1c4fb8;--info-bg:#e6eefc;--info-line:#bcd0f5;
+--bad:#a1261e;--bad-bg:#fde8e7;--bad-line:#f5bcb8;--radius:12px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button{font:inherit;cursor:pointer}
+.top{display:flex;align-items:center;gap:24px;padding:12px 28px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:18px}
+.brand b{display:block;font-size:16px}.brand small{color:var(--muted)}
+.tabs{display:flex;gap:4px;margin-left:12px}
+.tab{border:0;background:none;padding:8px 14px;border-radius:8px;color:var(--muted);font-weight:600}
+.tab.active{background:var(--info-bg);color:var(--info)}
+.spacer{flex:1}
+.ghost{border:1px solid var(--line);background:var(--card);padding:7px 12px;border-radius:8px;color:var(--muted)}
+.ghost:hover{border-color:#c5cad3;color:var(--ink)}
+main{padding:24px 28px;max-width:1500px;margin:0 auto}
+[hidden]{display:none!important}
+.run-grid{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.card h2{margin:0 0 4px;font-size:15px}.card .sub{color:var(--muted);margin:0 0 14px;font-size:13px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.drop{display:block;border:2px dashed #c9cfd9;border-radius:10px;padding:22px 12px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+.drop:hover,.drop.over{border-color:var(--brand);background:#f3f6ff;color:var(--brand)}
+.drop b{display:block;color:var(--ink);margin-bottom:2px}
+.drop input{display:none}
+.row{display:flex;align-items:center;gap:8px}
+.btn{border:0;border-radius:8px;padding:8px 12px;font-weight:600;background:var(--brand);color:var(--brand-ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.samples{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.sample{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.sample:hover{border-color:#c5cad3}
+.sample .t{font-weight:600}.sample .n{color:var(--muted);font-size:12px;grid-column:1}
+.sample .btn{grid-row:1/3;grid-column:2;align-self:center}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-right:6px}
+.toggle{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-top:12px}
+.empty{padding:70px 24px;text-align:center;color:var(--muted)}
+.empty .big{font-size:40px;margin-bottom:8px}
+.empty h2{color:var(--ink);font-size:18px;margin:0 0 6px}
+.runhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.runhead h2{margin:0;font-size:16px}.runhead .id{color:var(--muted);font-size:12px;font-family:ui-monospace,Menlo,monospace}
+.stages{list-style:none;margin:0;padding:0}
+.stage{display:grid;grid-template-columns:28px 1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.stage:first-child{border-top:0}
+.ico{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;border:2px solid #d3d8e0;color:#9aa3b0;background:#fff}
+.stage.running .ico{border-color:var(--brand);border-top-color:transparent;animation:spin .8s linear infinite;color:transparent}
+.stage.ok .ico{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.stage.warn .ico{background:var(--flag-bg);border-color:#c79200;color:var(--flag)}
+.stage.fail .ico{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.stage.skip .ico{background:#f0f1f4;border-color:#c5cad3;color:#8b93a1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stage .name{font-weight:600}.stage .sum{color:var(--muted);font-size:13px}
+.stage.pending .name,.stage.pending .sum{color:#9aa3b0}
+.stage .ms{color:#9aa3b0;font-size:12px;font-variant-numeric:tabular-nums}
+.stage .more{grid-column:2/4;display:none;margin-top:6px}
+.stage.open .more{display:block}
+.more ul{margin:0 0 6px;padding-left:18px;color:#3a424f;font-size:13px}
+.flag{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-radius:8px;font-size:13px;margin-top:6px;border:1px solid}
+.flag b{white-space:nowrap;font-size:11px;letter-spacing:.03em;padding-top:1px}
+.sev-reject{background:var(--bad-bg);border-color:var(--bad-line);color:#6e1812}
+.sev-hold{background:var(--hold-bg);border-color:var(--hold-line);color:#6b2d00}
+.sev-info_needed{background:var(--info-bg);border-color:var(--info-line);color:#123a87}
+.sev-flag{background:var(--flag-bg);border-color:var(--flag-line);color:#533d00}
+.sev-info{background:#f1f3f6;border-color:var(--line);color:#3a424f}
+.decision{border:1px solid;border-radius:var(--radius);padding:18px 20px;margin-top:16px}
+.decision .lab{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700}
+.decision .lab span.i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;font-size:18px}
+.decision p{margin:8px 0 0}
+.decision .next{margin-top:10px;padding-top:10px;border-top:1px dashed currentColor;border-top-color:rgba(0,0,0,.2);font-size:13px}
+.d-APPROVE{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok)}
+.d-APPROVE_WITH_FLAG{background:var(--flag-bg);border-color:var(--flag-line);color:var(--flag)}
+.d-HOLD{background:var(--hold-bg);border-color:var(--hold-line);color:var(--hold)}
+.d-REQUEST_INFO{background:var(--info-bg);border-color:var(--info-line);color:var(--info)}
+.d-REJECT{background:var(--bad-bg);border-color:var(--bad-line);color:var(--bad)}
+.decision .body{color:var(--ink)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media (max-width:1100px){.run-grid,.cols{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid #eef0f3;vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.nw{white-space:nowrap}
+.missing{color:var(--bad);font-weight:600}
+.conf{display:inline-block;width:46px;height:5px;background:#e6e9ee;border-radius:3px;overflow:hidden;vertical-align:middle;margin-right:6px}
+.conf i{display:block;height:100%;background:var(--ok)}
+.conf.lo i{background:#c79200}
+.bar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:#eceff3;margin:10px 0 6px}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:5px}
+.email{white-space:pre-wrap;background:#f8f9fb;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px}
+.preview{width:100%;height:560px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}.kpi .l{color:var(--muted);font-size:12px}
+.pill{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;border:1px solid}
+tr.click{cursor:pointer}tr.click:hover td{background:#f8f9fb}
+.po-bar{height:8px;background:#eceff3;border-radius:4px;overflow:hidden;min-width:120px}
+.po-bar i{display:block;height:100%;background:var(--brand)}
+.err{color:var(--bad);margin-top:8px;font-size:13px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="logo">⇄</div><div><b>Invoice → Decision</b><small>Meridian Retail · Accounts Payable</small></div></div>
+  <nav class="tabs"><button class="tab active" data-view="run">Process</button><button class="tab" data-view="dash">Dashboard</button></nav>
+  <div class="spacer"></div>
+  <button id="reset" class="ghost" title="Clears history and puts PO balances back to the starting point">Reset demo</button>
+</header>
+<main>
+<section id="view-run" class="run-grid">
+  <aside class="stack">
+    <div class="card">
+      <h2>Upload an invoice</h2><p class="sub">Any vendor invoice as a PDF, digital or scanned.</p>
+      <label class="drop" id="drop"><b>Drop a PDF here</b>or click to choose<input id="file" type="file" accept="application/pdf"></label>
+      <div class="err" id="uperr" hidden></div>
+    </div>
+    <div class="card">
+      <div class="row"><h2 style="flex:1">Sample invoices</h2><button class="btn sm" id="runall" title="Clears history, then runs all nine samples in order">Run all in order</button></div>
+      <p class="sub">Nine realistic cases. Run them top to bottom: 03 must go before 04.</p>
+      <div class="samples" id="samples"></div>
+      <label class="toggle"><input type="checkbox" id="slow" checked> Slow motion, so each step is easy to follow</label>
+    </div>
+  </aside>
+  <div id="stage-area">
+    <div class="card empty" id="empty"><div class="big">🧾</div><h2>Pick an invoice to process</h2>
+      <p>Upload a PDF or run a sample. Each step appears here as it happens, ending in a decision with the reasons.</p></div>
+    <div id="run" hidden>
+      <div class="card">
+        <div class="runhead"><h2 id="r-file"></h2><span class="id" id="r-id"></span><span class="pill" id="r-status"></span></div>
+        <ul class="stages" id="stages"></ul>
+        <div id="decision"></div>
+      </div>
+      <div id="details" hidden>
+        <div class="card" id="balance-card" style="margin-top:16px" hidden></div>
+        <div class="cols">
+          <div class="card"><h2>What was read</h2><p class="sub" id="method"></p><table id="fields"></table>
+            <h2 style="margin-top:16px">Line items</h2><table id="lines"></table></div>
+          <div class="stack">
+            <div class="card" id="email-card" hidden><h2>Drafted email to the vendor</h2><p class="sub" id="email-to"></p><div class="email" id="email"></div>
+              <button class="btn sec sm" id="copy" style="margin-top:10px">Copy email</button></div>
+            <div class="card"><h2>The invoice</h2><iframe class="preview" id="preview" title="Invoice PDF"></iframe></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="view-dash" hidden>
+  <div class="kpis" id="kpis"></div>
+  <div class="card" style="margin-bottom:18px"><h2>Outcomes</h2><div class="bar" id="dist"></div><div class="legend" id="legend"></div></div>
+  <div class="cols" style="grid-template-columns:3fr 2fr;margin-top:0">
+    <div class="card"><h2>Run history</h2><p class="sub">Click a run to replay it.</p><table id="history"></table></div>
+    <div class="card"><h2>Purchase order balances</h2><p class="sub">Only approved invoices use up a PO.</p><table id="pos"></table></div>
+  </div>
+</section>
+</main>
+
+<script>
+const D = {
+  APPROVE: {label: "Approved", short: "Approved", icon: "✓", color: "var(--ok)"},
+  APPROVE_WITH_FLAG: {label: "Approved with a flag", short: "Flagged", icon: "⚑", color: "#c79200"},
+  HOLD: {label: "On hold", short: "On hold", icon: "‖", color: "#d9650c"},
+  REQUEST_INFO: {label: "More information needed", short: "Info needed", icon: "✉", color: "var(--info)"},
+  REJECT: {label: "Rejected", short: "Rejected", icon: "✕", color: "var(--bad)"},
+};
+const STAGES = [["intake","Intake"],["extract","Extract fields"],["completeness","Completeness check"],["vendor","Vendor check"],
+  ["po","PO match"],["rules","Validation rules"],["duplicates","Duplicate check"],["decision","Decision"]];
+const ICON = {pending:"", running:"", ok:"✓", warn:"!", fail:"✕", skip:"–"};
+const SEV = {reject:"REJECT", hold:"HOLD", info_needed:"ASK VENDOR", flag:"CHECK", info:"NOTE"};
+const FIELD_LABELS = [["vendor_name","Vendor"],["vendor_gstin","Vendor GSTIN"],["invoice_number","Invoice number"],
+  ["invoice_date","Invoice date"],["po_reference","PO reference"],["subtotal","Sub-total"],["tax_amount","Tax"],
+  ["total","Total"],["tax_type","Tax type"],["bank_account","Bank account"],["bank_ifsc","IFSC"]];
+
+const $ = (s, r = document) => r.querySelector(s);
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") n.className = v; else if (k === "style") n.style.cssText = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else if (v !== null && v !== undefined) n.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) n.append(c.nodeType ? c : document.createTextNode(c));
+  return n;
+}
+const money = n => n === null || n === undefined ? "–" : "₹" + new Intl.NumberFormat("en-IN", {maximumFractionDigits: 2}).format(n);
+const when = s => s ? new Date(s).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"}) : "";
+const mask = v => v ? "••••" + String(v).slice(-4) : v;
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) { let m = r.statusText; try { m = (await r.json()).detail || m; } catch (e) {} throw new Error(m); }
+  return r.json();
+}
+const pill = d => { const x = D[d] || {short: d || "…", icon: "", color: "#999"};
+  return el("span", {class: "pill d-" + d}, x.icon, " ", x.short); };
+
+// ---------- navigation
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t === b));
+  $("#view-run").hidden = b.dataset.view !== "run"; $("#view-dash").hidden = b.dataset.view !== "dash";
+  if (b.dataset.view === "dash") loadDash();
+}));
+function showView(v) { document.querySelector(`.tab[data-view=${v}]`).click(); }
+
+// ---------- samples + upload
+let SAMPLES = [], source = null, busy = false;
+async function loadSamples() {
+  SAMPLES = await api("/api/samples");
+  const box = $("#samples"); box.replaceChildren();
+  SAMPLES.forEach(s => box.append(el("div", {class: "sample"},
+    el("div", {class: "t"}, s.file.slice(0, 2) + "  " + s.title),
+    el("div", {class: "n"}, el("span", {class: "chip"}, s.scanned ? "scanned" : "digital"), s.note),
+    el("button", {class: "btn sm sec", "data-file": s.file, onclick: () => runSample(s.file)}, "Run"))));
+}
+function setBusy(b) { busy = b; document.querySelectorAll(".sample .btn,#runall").forEach(x => x.disabled = b); }
+const slow = () => $("#slow").checked;
+async function runSample(file) {
+  const {run_id} = await api(`/api/samples/${encodeURIComponent(file)}/run?slow=${slow()}`, {method: "POST"});
+  return follow(run_id);
+}
+async function upload(f) {
+  $("#uperr").hidden = true;
+  if (!f) return;
+  const fd = new FormData(); fd.append("file", f);
+  try { const {run_id} = await api(`/api/runs?slow=${slow()}`, {method: "POST", body: fd}); follow(run_id); }
+  catch (e) { $("#uperr").textContent = e.message; $("#uperr").hidden = false; }
+}
+$("#file").addEventListener("change", e => { upload(e.target.files[0]); e.target.value = ""; });
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => upload(e.dataTransfer.files[0]));
+$("#runall").addEventListener("click", async () => {
+  await api("/api/reset", {method: "POST"});
+  for (const s of SAMPLES) await runSample(s.file);
+});
+$("#reset").addEventListener("click", async () => {
+  if (busy) return;
+  await api("/api/reset", {method: "POST"});
+  $("#empty").hidden = false; $("#run").hidden = true;
+  if (!$("#view-dash").hidden) loadDash();
+});
+
+// ---------- run view
+function renderStageList() {
+  const ul = $("#stages"); ul.replaceChildren();
+  STAGES.forEach(([k, n]) => ul.append(el("li", {class: "stage pending", id: "st-" + k, onclick: ev => ev.currentTarget.classList.toggle("open")},
+    el("div", {class: "ico"}), el("div", {}, el("div", {class: "name"}, n), el("div", {class: "sum"}, "Waiting")),
+    el("div", {class: "ms"}), el("div", {class: "more"}))));
+}
+function paintStage(e) {
+  const li = $("#st-" + e.stage); if (!li) return;
+  li.className = "stage " + e.status + (li.classList.contains("open") ? " open" : "");
+  $(".ico", li).textContent = ICON[e.status] ?? "";
+  $(".sum", li).textContent = e.status === "running" ? "Working…" : e.summary;
+  $(".ms", li).textContent = e.ms || e.ms === 0 ? e.ms + " ms" : "";
+  const more = $(".more", li); more.replaceChildren();
+  if (e.status === "running") return;
+  if (e.details.length) more.append(el("ul", {}, e.details.map(d => el("li", {}, d))));
+  e.flags.forEach(f => more.append(el("div", {class: "flag sev-" + f.severity}, el("b", {}, SEV[f.severity]), el("span", {}, f.message))));
+  if (e.flags.some(f => f.severity !== "info") || e.status === "fail") li.classList.add("open");
+}
+function follow(run_id) {
+  if (source) source.close();
+  setBusy(true); showView("run");
+  $("#empty").hidden = true; $("#run").hidden = false; $("#details").hidden = true; $("#decision").replaceChildren();
+  $("#r-id").textContent = "run " + run_id; $("#r-file").textContent = "Processing…";
+  $("#r-status").replaceWith(Object.assign(el("span", {class: "pill", id: "r-status"}, "Running"), {}));
+  renderStageList();
+  return new Promise(resolve => {
+    source = new EventSource(`/api/runs/${run_id}/events`);
+    source.addEventListener("stage", m => paintStage(JSON.parse(m.data)));
+    source.addEventListener("done", m => { source.close(); const r = JSON.parse(m.data); renderResult(run_id, r); setBusy(false); resolve(r); });
+    source.addEventListener("error", () => { if (source.readyState === 2) { setBusy(false); resolve(null); } });
+  });
+}
+async function replay(run_id) {
+  if (busy) return;
+  const r = await api(`/api/runs/${run_id}`);
+  showView("run"); $("#empty").hidden = true; $("#run").hidden = false;
+  $("#r-id").textContent = "run " + run_id; renderStageList();
+  r.events.forEach(paintStage);
+  if (r.result) renderResult(run_id, r.result);
+}
+function renderResult(run_id, r) {
+  $("#r-file").textContent = r.filename;
+  $("#r-status").replaceWith(Object.assign(pill(r.decision), {id: "r-status"}));
+  const d = D[r.decision];
+  $("#decision").replaceChildren(el("div", {class: "decision d-" + r.decision},
+    el("div", {class: "lab"}, el("span", {class: "i"}, d.icon), d.label),
+    el("p", {class: "body"}, r.headline),
+    r.reasons.length ? el("div", {}, r.reasons.map(x => el("div", {class: "flag sev-" + x.severity}, el("b", {}, SEV[x.severity]), el("span", {}, x.message)))) : null,
+    r.notes.length ? el("div", {}, r.notes.map(x => el("div", {class: "flag sev-info"}, el("b", {}, "NOTE"), el("span", {}, x)))) : null,
+    el("div", {class: "next"}, el("b", {}, "Next step: "), r.next_action)));
+  $("#details").hidden = false;
+  renderBalance(r);
+  $("#method").textContent = r.extraction_method ? "Read using " + r.extraction_method : "";
+  const f = $("#fields"); f.replaceChildren(el("tr", {}, el("th", {}, "Field"), el("th", {}, "Value"), el("th", {}, "Confidence")));
+  FIELD_LABELS.forEach(([k, label]) => {
+    const x = (r.extracted || {})[k]; if (!x) return;
+    const none = x.value === null || x.value === undefined;
+    let v = none ? null : (["subtotal", "tax_amount", "total"].includes(k) ? money(x.value) : k === "bank_account" ? mask(x.value) : x.value);
+    f.append(el("tr", {}, el("td", {}, label), el("td", {class: none ? "missing" : ""}, none ? "not found" : v),
+      el("td", {}, none ? "" : [el("span", {class: "conf" + (x.confidence < 0.8 ? " lo" : "")}, el("i", {style: `width:${Math.round(x.confidence * 100)}%`})), Math.round(x.confidence * 100) + "%"])));
+  });
+  const l = $("#lines"); l.replaceChildren(el("tr", {}, el("th", {}, "Description"), el("th", {class: "num"}, "Qty"), el("th", {class: "num"}, "Rate"), el("th", {class: "num"}, "Amount")));
+  (r.line_items || []).forEach(i => l.append(el("tr", {}, el("td", {}, i.description), el("td", {class: "num"}, i.qty), el("td", {class: "num"}, money(i.rate)), el("td", {class: "num"}, money(i.amount)))));
+  if (!(r.line_items || []).length) l.append(el("tr", {}, el("td", {colspan: 4, class: "missing"}, "No line items could be read")));
+  $("#email-card").hidden = !r.email_draft;
+  if (r.email_draft) { $("#email-to").textContent = "To: " + r.email_draft.to + "  ·  Subject: " + r.email_draft.subject; $("#email").textContent = r.email_draft.body; }
+  $("#preview").src = `/api/runs/${run_id}/file`;
+}
+function renderBalance(r) {
+  const c = $("#balance-card"), b = r.balance || {};
+  if (!r.po_number || b.po_total === undefined) { c.hidden = true; return; }
+  const prior = b.already_invoiced, mine = r.total || 0, cap = Math.max(b.po_total, prior + mine);
+  const col = (D[r.decision] || {}).color;
+  const over = prior + mine > b.po_total;
+  c.hidden = false; c.replaceChildren(
+    el("h2", {}, "Purchase order " + r.po_number),
+    el("p", {class: "sub"}, `PO value ${money(b.po_total)} · already invoiced ${money(prior)} · remaining ${money(b.remaining)} · this invoice ${money(r.total)}`),
+    el("div", {style: "position:relative"},
+      el("div", {class: "bar"}, el("i", {style: `width:${prior / cap * 100}%;background:#8a94a6`}), el("i", {style: `width:${mine / cap * 100}%;background:${col}`})),
+      over ? el("div", {title: "PO value", style: `position:absolute;top:6px;bottom:2px;left:${b.po_total / cap * 100}%;border-left:2px solid #14181f`}) : null),
+    el("div", {class: "legend"}, el("span", {style: "--c:#8a94a6"}, "Already invoiced"), mine ? el("span", {style: `--c:${col}`}, "This invoice") : null,
+      over ? el("span", {style: "--c:#14181f"}, "PO value: the invoice goes past this line") : null));
+}
+$("#copy").addEventListener("click", async e => { await navigator.clipboard.writeText($("#email").textContent); e.target.textContent = "Copied"; setTimeout(() => e.target.textContent = "Copy email", 1500); });
+
+// ---------- dashboard
+async function loadDash() {
+  const [st, runs, pos] = await Promise.all([api("/api/stats"), api("/api/runs"), api("/api/pos")]);
+  const by = st.by_decision, n = k => by[k] || 0;
+  const kp = [["Invoices processed", st.processed], ["Approved", n("APPROVE") + n("APPROVE_WITH_FLAG")],
+    ["Need a person", n("HOLD") + n("REQUEST_INFO")], ["Rejected", n("REJECT")], ["Value approved", money(st.approved_value)],
+    ["Value held or pending", money(st.held_value)]];
+  $("#kpis").replaceChildren(...kp.map(([l, v]) => el("div", {class: "kpi"}, el("div", {class: "v"}, v), el("div", {class: "l"}, l))));
+  $("#dist").replaceChildren(...Object.keys(D).filter(k => n(k)).map(k => el("i", {title: D[k].label + ": " + n(k), style: `width:${n(k) / st.processed * 100}%;background:${D[k].color}`})));
+  $("#legend").replaceChildren(...Object.keys(D).map(k => el("span", {style: "--c:" + D[k].color}, `${D[k].label} (${n(k)})`)));
+  const h = $("#history"); h.replaceChildren(el("tr", {}, ["Time", "File", "Vendor", "Invoice", "Total", "Decision"].map((t, i) => el("th", {class: i === 4 ? "num" : ""}, t))));
+  runs.forEach(r => h.append(el("tr", {class: "click", onclick: () => replay(r.id)}, el("td", {class: "nw"}, when(r.created_at)), el("td", {}, r.filename),
+    el("td", {}, r.vendor || "–"), el("td", {}, r.invoice_no || "–"), el("td", {class: "num"}, money(r.total)),
+    el("td", {}, r.status === "running" ? "Running…" : pill(r.decision)))));
+  if (!runs.length) h.append(el("tr", {}, el("td", {colspan: 6, class: "sub"}, "No runs yet. Process an invoice and it will appear here.")));
+  const p = $("#pos"); p.replaceChildren(el("tr", {}, ["PO", "Vendor", "Remaining", "Used"].map((t, i) => el("th", {class: i === 2 ? "num" : ""}, t))));
+  pos.forEach(x => p.append(el("tr", {}, el("td", {}, x.po_number), el("td", {}, x.vendor), x.remaining < 0 ? el("td", {class: "num missing"}, "over by " + money(-x.remaining)) : el("td", {class: "num"}, money(x.remaining)),
+    el("td", {}, el("div", {class: "po-bar", title: `${money(x.invoiced)} of ${money(x.total)}`}, el("i", {style: `width:${Math.min(100, x.invoiced / x.total * 100)}%`}))))));
+}
+
+loadSamples();
+</script>
+</body>
+</html>

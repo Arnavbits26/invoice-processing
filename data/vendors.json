@@ -1,0 +1,56 @@
+[
+  {
+    "id": "V001",
+    "name": "Sharma Office Supplies Pvt Ltd",
+    "addr": "22 Commercial Street, Bengaluru 560001",
+    "gstin": "29AAACS4410F1ZP",
+    "bank": "HDFC Bank",
+    "account": "50200012345678",
+    "ifsc": "HDFC0000123"
+  },
+  {
+    "id": "V002",
+    "name": "Bharat IT Services LLP",
+    "addr": "Hinjewadi Phase 2, Pune 411057",
+    "gstin": "27AAEFB7712Q1Z3",
+    "bank": "ICICI Bank",
+    "account": "000405012233",
+    "ifsc": "ICIC0000004"
+  },
+  {
+    "id": "V003",
+    "name": "Greenfield Logistics Pvt Ltd",
+    "addr": "Guindy Industrial Estate, Chennai 600032",
+    "gstin": "33AACCG9081L1ZK",
+    "bank": "State Bank of India",
+    "account": "32145098761",
+    "ifsc": "SBIN0001234"
+  },
+  {
+    "id": "V004",
+    "name": "Apex Facility Management Pvt Ltd",
+    "addr": "HSR Layout, Bengaluru 560102",
+    "gstin": "29AAFCA2210D1Z8",
+    "bank": "Axis Bank",
+    "account": "917020045678123",
+    "ifsc": "UTIB0000987"
+  },
+  {
+    "id": "V005",
+    "name": "Nimbus Cloud Solutions Pvt Ltd",
+    "addr": "HITEC City, Hyderabad 500081",
+    "gstin": "36AAHCN6654M1Z1",
+    "bank": "Kotak Mahindra Bank",
+    "account": "8812004455",
+    "ifsc": "KKBK0000458"
+  },
+  {
+    "id": "V006",
+    "name": "Kaveri Printing Works",
+    "addr": "Devaraja Mohalla, Mysuru 570001",
+    "gstin": "29AAAFK1189H1Z6",
+    "bank": "Canara Bank",
+    "account": "1100010233445",
+    "ifsc": "CNRB0000210"
+  }
+]

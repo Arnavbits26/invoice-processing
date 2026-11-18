@@ -1,0 +1,65 @@
+[
+  {
+    "file": "01_clean_sharma_office.pdf",
+    "expected_decision": "APPROVE",
+    "note": "Clean invoice, exact PO match",
+    "scanned": false,
+    "total": 215822.0
+  },
+  {
+    "file": "02_it_services_within_tolerance.pdf",
+    "expected_decision": "APPROVE",
+    "note": "+1.2% over PO, inside the 2% tolerance",
+    "scanned": false,
+    "total": 304499.0
+  },
+  {
+    "file": "03_freight_part1.pdf",
+    "expected_decision": "APPROVE",
+    "note": "First half of a split PO; run before file 04",
+    "scanned": false,
+    "total": 295000.0
+  },
+  {
+    "file": "04_freight_part2_over_balance.pdf",
+    "expected_decision": "HOLD",
+    "note": "Second split invoice exceeds the remaining PO balance",
+    "scanned": false,
+    "total": 306800.0
+  },
+  {
+    "file": "05_duplicate_scanned.pdf",
+    "expected_decision": "REJECT",
+    "note": "Scanned re-send of an invoice already paid, with a re-formatted number",
+    "scanned": true,
+    "total": 152220.0
+  },
+  {
+    "file": "06_scanned_no_po_reference.pdf",
+    "expected_decision": "APPROVE_WITH_FLAG",
+    "note": "Scanned, no PO number: PO inferred from vendor and amount",
+    "scanned": true,
+    "total": 637200.0
+  },
+  {
+    "file": "07_missing_number_and_total.pdf",
+    "expected_decision": "REQUEST_INFO",
+    "note": "No invoice number and no total: ask the vendor",
+    "scanned": false,
+    "total": null
+  },
+  {
+    "file": "08_bank_details_changed.pdf",
+    "expected_decision": "HOLD",
+    "note": "Bank account differs from the vendor master: payment-fraud signal",
+    "scanned": false,
+    "total": 212800.0
+  },
+  {
+    "file": "09_unapproved_vendor.pdf",
+    "expected_decision": "REJECT",
+    "note": "Vendor is not on the approved list and the PO does not exist",
+    "scanned": false,
+    "total": 59000.0
+  }
+]
