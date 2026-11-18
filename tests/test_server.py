@@ -79,3 +79,7 @@ def test_unknown_things_404(client):
 def test_healthz(client):
     r = client.get("/healthz")
     assert r.status_code == 200 and r.json() == {"ok": True}
+
+
+def test_healthz_answers_head(client):
+    assert client.head("/healthz").status_code == 200

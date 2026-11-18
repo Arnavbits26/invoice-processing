@@ -50,7 +50,7 @@ def _start(path, filename, slow):
     return run_id
 
 
-@app.get("/healthz")
+@app.api_route("/healthz", methods=["GET", "HEAD"])  # monitors often probe with HEAD
 def healthz():
     """Tiny, dependency-free check for uptime monitors and Render. Touches no database or files."""
     return {"ok": True}
