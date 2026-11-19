@@ -5,3 +5,7 @@ __pycache__/
 data/app.db
 data/uploads/
 .DS_Store
+
+# personal interview prep, not part of the project
+Invoice_Demo_Script.pdf
+Invoice_App_Guide_and_Defence.pdf
